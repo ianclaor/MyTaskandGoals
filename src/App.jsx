@@ -111,8 +111,8 @@ function App() {
     <div className="app">
       <div className="page-shell">
         <header className="hero">
-          <h1>Ian Task and Goals</h1>
-          <p>Track your priorities, manage your progress, and finish strong.</p>
+          <h1>My Task and Goals</h1>
+          <p>Track your priorities, manage your progress.</p>
         </header>
 
         <section className="task-form-card">
