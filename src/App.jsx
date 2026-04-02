@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 
 const mainColumns = [
@@ -21,16 +21,33 @@ function App() {
   const [editingId, setEditingId] = useState(null);
   const [draggedTaskId, setDraggedTaskId] = useState(null);
 
+  const [incidentNumber, setIncidentNumber] = useState("");
+  const [issueDescription, setIssueDescription] = useState("");
+  const [affectedUsers, setAffectedUsers] = useState("");
+  const [systems, setSystems] = useState("");
+  const [actionItem, setActionItem] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [issues, setIssues] = useState([]);
+  const [editingIssueId, setEditingIssueId] = useState(null);
+
+  const issueListRef = useRef(null);
+
   useEffect(() => {
     const savedTasks = JSON.parse(localStorage.getItem("tasks"));
-    if (savedTasks) {
-      setTasks(savedTasks);
-    }
+    if (savedTasks) setTasks(savedTasks);
+
+    const savedIssues = JSON.parse(localStorage.getItem("issues"));
+    if (savedIssues) setIssues(savedIssues);
   }, []);
 
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
+
+  useEffect(() => {
+    localStorage.setItem("issues", JSON.stringify(issues));
+  }, [issues]);
 
   const handleSubmit = () => {
     if (!taskText.trim()) return;
@@ -38,9 +55,7 @@ function App() {
     if (editingId) {
       setTasks(
         tasks.map((task) =>
-          task.id === editingId
-            ? { ...task, title: taskText, status }
-            : task
+          task.id === editingId ? { ...task, title: taskText, status } : task
         )
       );
       setEditingId(null);
@@ -95,6 +110,81 @@ function App() {
     e.preventDefault();
   };
 
+  const handleIssueSubmit = () => {
+    if (
+      !incidentNumber.trim() &&
+      !issueDescription.trim() &&
+      !affectedUsers.trim() &&
+      !systems.trim() &&
+      !actionItem.trim() &&
+      !startDate.trim() &&
+      !dueDate.trim()
+    ) {
+      return;
+    }
+
+    if (editingIssueId) {
+      setIssues(
+        issues.map((issue) =>
+          issue.id === editingIssueId
+            ? {
+                ...issue,
+                incidentNumber,
+                description: issueDescription,
+                affectedUsers,
+                systems,
+                actionItem,
+                startDate,
+                dueDate,
+              }
+            : issue
+        )
+      );
+      setEditingIssueId(null);
+    } else {
+      const newIssue = {
+        id: Date.now(),
+        incidentNumber,
+        description: issueDescription,
+        affectedUsers,
+        systems,
+        actionItem,
+        startDate,
+        dueDate,
+      };
+      setIssues([...issues, newIssue]);
+    }
+
+    setIncidentNumber("");
+    setIssueDescription("");
+    setAffectedUsers("");
+    setSystems("");
+    setActionItem("");
+    setStartDate("");
+    setDueDate("");
+  };
+
+  const handleEditIssue = (issue) => {
+    setIncidentNumber(issue.incidentNumber || "");
+    setIssueDescription(issue.description || "");
+    setAffectedUsers(issue.affectedUsers || "");
+    setSystems(issue.systems || "");
+    setActionItem(issue.actionItem || "");
+    setStartDate(issue.startDate || "");
+    setDueDate(issue.dueDate || "");
+    setEditingIssueId(issue.id);
+
+    issueListRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleDeleteIssue = (id) => {
+    setIssues(issues.filter((issue) => issue.id !== id));
+  };
+
+  const goToIssueList = () => {
+    issueListRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const getColumnClass = (key) => {
     switch (key) {
       case "todo":
@@ -112,75 +202,92 @@ function App() {
     }
   };
 
-  const exportEndorsementToExcel = () => {
-  const endorsementTasks = tasks.filter(
-    (task) => task.status === "appsgaming" || task.status === "ittss"
-  );
-
-  const data = endorsementTasks.map((task, index) => {
-    let exportStatus = "";
-
-    switch (task.status) {
-      case "appsgaming":
-        exportStatus = "For Endorsement to IT Apps Gaming";
-        break;
-      case "ittss":
-        exportStatus = "For Endorsement to IT TSS";
-        break;
-      default:
-        exportStatus = task.status;
-    }
-
-    return {
-      No: index + 1,
-      Task: task.title,
-      Status: exportStatus,
-    };
-  });
-
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Endorsements");
-  XLSX.writeFile(workbook, "endorsement-tasks.xlsx");
-};
-
   const exportToExcel = () => {
-  const data = tasks.map((task, index) => {
-    let exportStatus = "";
+    const normalTasks = tasks.filter(
+      (task) =>
+        task.status === "todo" ||
+        task.status === "doing" ||
+        task.status === "done"
+    );
 
-    switch (task.status) {
-      case "todo":
-        exportStatus = "To Do";
-        break;
-      case "doing":
-        exportStatus = "Doing";
-        break;
-      case "done":
-        exportStatus = "Done";
-        break;
-      case "appsgaming":
-        exportStatus = "For Endorsement to IT Apps Gaming";
-        break;
-      case "ittss":
-        exportStatus = "For Endorsement to IT TSS";
-        break;
-      default:
-        exportStatus = task.status;
-    }
+    const data = normalTasks.map((task, index) => {
+      let exportStatus = "";
 
-    return {
+      switch (task.status) {
+        case "todo":
+          exportStatus = "To Do";
+          break;
+        case "doing":
+          exportStatus = "Doing";
+          break;
+        case "done":
+          exportStatus = "Done";
+          break;
+        default:
+          exportStatus = task.status;
+      }
+
+      return {
+        No: index + 1,
+        Task: task.title,
+        Status: exportStatus,
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "My Tasks");
+    XLSX.writeFile(workbook, "ian-my-tasks.xlsx");
+  };
+
+  const exportEndorsementToExcel = () => {
+    const endorsementTasks = tasks.filter(
+      (task) => task.status === "appsgaming" || task.status === "ittss"
+    );
+
+    const data = endorsementTasks.map((task, index) => {
+      let exportStatus = "";
+
+      switch (task.status) {
+        case "appsgaming":
+          exportStatus = "For Endorsement to IT Apps Gaming";
+          break;
+        case "ittss":
+          exportStatus = "For Endorsement to IT TSS";
+          break;
+        default:
+          exportStatus = task.status;
+      }
+
+      return {
+        No: index + 1,
+        Task: task.title,
+        Status: exportStatus,
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Endorsements");
+    XLSX.writeFile(workbook, "ian-endorsement-tasks.xlsx");
+  };
+
+  const exportIssueListToExcel = () => {
+    const data = issues.map((issue, index) => ({
       No: index + 1,
-      Task: task.title,
-      Status: exportStatus,
-    };
-  });
+      "Incident Number": issue.incidentNumber,
+      Description: issue.description,
+      "Affected Business Users": issue.affectedUsers,
+      Systems: issue.systems,
+      "Action Item": issue.actionItem,
+      "Start Date": issue.startDate,
+      "Due Date": issue.dueDate,
+    }));
 
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks");
-  XLSX.writeFile(workbook, "ian-task-and-goals.xlsx");
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Issue List");
+    XLSX.writeFile(workbook, "ian-issue-list.xlsx");
   };
 
   const renderTasks = (columnStatus) => {
@@ -239,7 +346,6 @@ function App() {
           {tasks.filter((task) => task.status === column.key).length}
         </span>
       </div>
-
       <div className="column-body">{renderTasks(column.key)}</div>
     </div>
   );
@@ -249,7 +355,7 @@ function App() {
       <div className="page-shell">
         <header className="hero">
           <h1>My Task and Goals</h1>
-          <p>Track your shit!</p>
+          <p>PEPOL OF OKADA PELEPENS</p>
         </header>
 
         <section className="task-form-card">
@@ -276,16 +382,17 @@ function App() {
               {editingId ? "Update Task" : "Add Task"}
             </button>
 
-             <button className="export-btn" onClick={exportToExcel}>
+            <button className="export-btn" onClick={exportToExcel}>
               Export My Task
-              </button>
+            </button>
 
             <button className="endorsement-export-btn" onClick={exportEndorsementToExcel}>
               Export Endorsement
-            </button> 
-            {/* <button className="export-btn" onClick={exportToExcel}>
-              Export to Excel
-            </button> */}
+            </button>
+
+            <button className="issue-nav-btn" onClick={goToIssueList}>
+              Go to Issue List
+            </button>
           </div>
         </section>
 
@@ -299,10 +406,148 @@ function App() {
             {endorsementColumns.map(renderColumn)}
           </div>
         </section>
+
+        <section className="issue-section" ref={issueListRef}>
+          <div className="issue-section-header">
+            <h2>Issue List</h2>
+            <button className="issue-export-btn" onClick={exportIssueListToExcel}>
+              Export Issue List
+            </button>
+          </div>
+
+          <div className="issue-form-grid">
+            <div className="issue-field">
+              <label>Incident Number</label>
+              <input
+                type="text"
+                placeholder="Enter incident number"
+                value={incidentNumber}
+                onChange={(e) => setIncidentNumber(e.target.value)}
+              />
+            </div>
+
+            <div className="issue-field">
+              <label>Affected Business Users</label>
+              <input
+                type="text"
+                placeholder="Enter affected business users"
+                value={affectedUsers}
+                onChange={(e) => setAffectedUsers(e.target.value)}
+              />
+            </div>
+
+            <div className="issue-field">
+              <label>Systems</label>
+              <input
+                type="text"
+                placeholder="Enter systems"
+                value={systems}
+                onChange={(e) => setSystems(e.target.value)}
+              />
+            </div>
+
+            <div className="issue-field">
+              <label>Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            <div className="issue-field">
+              <label>Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
+
+            <div className="issue-field issue-field-wide">
+              <label>Description</label>
+              <textarea
+                className="issue-textarea"
+                placeholder="Enter issue description"
+                value={issueDescription}
+                onChange={(e) => setIssueDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="issue-field issue-field-wide">
+              <label>Action Item</label>
+              <textarea
+                className="issue-textarea"
+                placeholder="Enter action item"
+                value={actionItem}
+                onChange={(e) => setActionItem(e.target.value)}
+              />
+            </div>
+
+            <div className="issue-field issue-button-wrap">
+              <button className="main-btn" onClick={handleIssueSubmit}>
+                {editingIssueId ? "Update Issue" : "Add Issue"}
+              </button>
+            </div>
+          </div>
+
+          <div className="issue-table-wrap">
+            <table className="issue-table">
+              <thead>
+                <tr>
+                  <th>Incident Number</th>
+                  <th>Description</th>
+                  <th>Affected Business Users</th>
+                  <th>Systems</th>
+                  <th>Action Item</th>
+                  <th>Start Date</th>
+                  <th>Due Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {issues.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="no-issues">
+                      No issues added yet.
+                    </td>
+                  </tr>
+                ) : (
+                  issues.map((issue) => (
+                    <tr key={issue.id}>
+                      <td className="wrap-cell">{issue.incidentNumber}</td>
+                      <td className="wrap-cell">{issue.description}</td>
+                      <td className="wrap-cell">{issue.affectedUsers}</td>
+                      <td className="wrap-cell">{issue.systems}</td>
+                      <td className="wrap-cell">{issue.actionItem}</td>
+                      <td>{issue.startDate}</td>
+                      <td>{issue.dueDate}</td>
+                      <td>
+                        <div className="issue-actions">
+                          <button
+                            className="btn light-btn"
+                            onClick={() => handleEditIssue(issue)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn danger-btn"
+                            onClick={() => handleDeleteIssue(issue.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );
 }
-
 
 export default App;
