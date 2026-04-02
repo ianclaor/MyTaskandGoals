@@ -15,7 +15,7 @@ body {
 }
 
 .page-shell {
-  max-width: 1300px;
+  max-width: 1500px;
   margin: 0 auto;
 }
 
@@ -40,7 +40,7 @@ body {
 
 .task-form-card {
   display: grid;
-  grid-template-columns: 1fr 220px;
+  grid-template-columns: 1fr 260px;
   gap: 18px;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -107,10 +107,68 @@ select {
   opacity: 0.95;
 }
 
+.export-btn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #15803d;
+  color: white;
+  transition: 0.2s ease;
+  margin-top: 10px;
+}
+
+.endorsement-export-btn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #7c3aed;
+  color: white;
+  transition: 0.2s ease;
+  margin-top: 10px;
+}
+
+.endorsement-export-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.export-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
 .board {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+
+.top-board {
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  margin-bottom: 28px;
+}
+
+.bottom-board {
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+}
+
+.endorsement-section {
+  margin-top: 10px;
+}
+
+.section-title {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 18px;
+  padding-left: 4px;
 }
 
 .column {
@@ -119,7 +177,7 @@ select {
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 14px;
-  min-height: 520px;
+  min-height: 420px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.15);
 }
 
@@ -147,6 +205,14 @@ select {
   background: linear-gradient(135deg, #10b981, #34d399);
 }
 
+.appsgaming-header {
+  background: linear-gradient(135deg, #14b8a6, #2dd4bf);
+}
+
+.ittss-header {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+}
+
 .count {
   background: rgba(255, 255, 255, 0.2);
   padding: 6px 10px;
@@ -165,6 +231,11 @@ select {
   border-radius: 18px;
   padding: 16px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  cursor: grab;
+}
+
+.task-card:active {
+  cursor: grabbing;
 }
 
 .task-title {
@@ -180,6 +251,7 @@ select {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-bottom: 14px;
 }
 
 .btn {
@@ -206,14 +278,23 @@ select {
   color: #dc2626;
 }
 
-.action-btn {
-  background: #dbeafe;
-  color: #1d4ed8;
+.quick-move {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.success-btn {
-  background: #dcfce7;
-  color: #15803d;
+.quick-move label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+.quick-move select {
+  margin-bottom: 0;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
 }
 
 .empty-text {
@@ -223,13 +304,10 @@ select {
   padding: 8px 4px;
 }
 
-@media (max-width: 1024px) {
-  .board {
+@media (max-width: 1100px) {
+  .top-board,
+  .bottom-board {
     grid-template-columns: 1fr;
-  }
-
-  .column {
-    min-height: auto;
   }
 }
 
