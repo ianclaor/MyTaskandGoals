@@ -31,6 +31,7 @@ function App() {
   const [issues, setIssues] = useState([]);
   const [editingIssueId, setEditingIssueId] = useState(null);
 
+  const taskFormRef = useRef(null);
   const issueListRef = useRef(null);
 
   useEffect(() => {
@@ -76,6 +77,10 @@ function App() {
     setTaskText(task.title);
     setStatus(task.status);
     setEditingId(task.id);
+
+    setTimeout(() => {
+      taskFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const handleDelete = (id) => {
@@ -358,7 +363,7 @@ function App() {
           <p>PEPOL OF OKADA PELEPENS</p>
         </header>
 
-        <section className="task-form-card">
+        <section className="task-form-card" ref={taskFormRef}>
           <div className="task-form-left">
             <label className="label">Task Description</label>
             <textarea
